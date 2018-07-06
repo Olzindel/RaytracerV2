@@ -1,5 +1,6 @@
 #include "./GLM/glm/glm/glm.hpp"
 #include "./Scene/Scene.hpp"
+#include "./Raytracer/Raytracer.hpp"
 
 #include <iostream>
 
