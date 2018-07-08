@@ -13,6 +13,15 @@ Scene::Scene(Camera camera_, vec3 skyColor_) : camera(camera_), skyColor(skyColo
 	lights = list<Light*>();
 }
 
+bool Scene::intersectScene(Ray * ray, Intersection * intersection){
+	bool intersect = false;
+	for(Object * o : objects){
+		intersect = intersect || o->intersectObject(ray, intersection);
+	}
+
+	return intersect;
+}
+
 Scene::~Scene(){
 	
 }

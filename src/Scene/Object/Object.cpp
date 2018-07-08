@@ -10,5 +10,11 @@ Object::~Object(){
 }
 
 bool Object::intersectObject(Ray *ray, Intersection * intersection){
-	return primitive->intersectPrimitive(ray, intersection);
+
+	if(primitive->intersectPrimitive(ray, intersection)){
+		intersection->material = material;
+		return true;
+	}
+
+	return false;
 }

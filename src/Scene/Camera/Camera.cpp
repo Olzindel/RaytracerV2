@@ -4,10 +4,9 @@
 Camera::~Camera(){
 }
 
-Camera::Camera(vec3 position, vec3 at, vec3 up, float fov, float height, float width){
+Camera::Camera(vec3 position, vec3 at, vec3 up, float fov, float aspect){
 	this->fov = fov;
-	this->height = height;
-	this->width = width;
+	this->aspect = aspect;
 	this->position = position;
 	this->zdir = normalize(at - position);
 	this->xdir = normalize(cross(up, this->zdir));

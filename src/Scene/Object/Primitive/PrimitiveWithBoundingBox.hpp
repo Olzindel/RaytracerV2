@@ -3,12 +3,13 @@
 
 #include "Primitive.hpp"
 
-class PrimitiveWithBoundingBox : Primitive {
+class PrimitiveWithBoundingBox : public Primitive {
 	public:
 		struct boundingBox{
 			vec3 min;
 			vec3 max;
 		};
+		virtual bool intersectPrimitive(Ray *ray, Intersection *intersection) = 0;
 };
 
 #endif

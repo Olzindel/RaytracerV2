@@ -3,9 +3,10 @@
 
 #include "./Light.hpp"
 
-class DistantLight::Light{
+class DistantLight : public Light{
 	public:
 		DistantLight(vec3 color_, vec3 position_);
+		vec3 Color(vec3 observatorPosition) override;
 	private:
 		vec3 color;
 };

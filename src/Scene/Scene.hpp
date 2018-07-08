@@ -19,6 +19,7 @@ class Scene{
 		~Scene();
 		void addObject(Object *object);
 		void addLight(Light * light);
+		bool intersectScene(Ray * ray, Intersection * intersection);
 };
 
 #endif
