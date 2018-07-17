@@ -12,7 +12,7 @@ class Ray{
 		float depth; //! The number of times a ray has bounced
 		float tmin;
 		float tmax;
-		Ray(vec3 origin, vec3 dir, float depth = 0, float tmin = 0 , float tmax = 10000);
+		Ray(vec3 origin, vec3 dir, float depth = 0, float tmin = 0 , float tmax = 100000);
 		vec3 rayAt(float t);
 };
 

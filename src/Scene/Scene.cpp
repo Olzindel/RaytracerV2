@@ -16,7 +16,7 @@ Scene::Scene(Camera camera_, vec3 skyColor_) : camera(camera_), skyColor(skyColo
 bool Scene::intersectScene(Ray * ray, Intersection * intersection){
 	bool intersect = false;
 	for(Object * o : objects){
-		intersect = intersect || o->intersectObject(ray, intersection);
+		intersect = o->intersectObject(ray, intersection) || intersect;
 	}
 
 	return intersect;

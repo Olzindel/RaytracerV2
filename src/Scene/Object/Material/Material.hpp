@@ -6,17 +6,17 @@
 using namespace glm;
 
 enum MaterialCategory {Dielectric,Conductor};
-enum MaterialType {Diffuse, Reflective, ReflectiveAndRefractive};
 
 class Material{
 	public:
-		MaterialCategory materialCategory;
-		MaterialType materialType;
-		vec3 ambiantColor;
-		vec3 diffuseColor;
-		vec3 specularColor;
-		float IOR;
-		float roughness;
+		MaterialCategory materialCategory = Dielectric;
+		bool isDiffuse = true;
+		bool isReflective = false;
+		bool isRefractive = false;
+		vec3 diffuseColor = vec3(1.f,1.f,1.f);
+		vec3 specularColor = vec3(1.f,1.f,1.f);
+		float IOR =1.5f;
+		float roughness = 0.1f;
 };
 
 #endif
