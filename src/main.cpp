@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 	}
 
 	Camera c = Camera(vec3(0,0,0), vec3(0,0,1), vec3(0,1,0), 60, (float)WIDTH/(float)HEIGHT);
-	Scene s = Scene(c, vec3(0.f,0.6f,0.7f));
+	Scene s = Scene(c, vec3(0.f,0.4f,0.7f));
 
 	Material m = Material();
 
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]){
 	m.roughness = 0.4f;
 	m.IOR = 1.33f;
 	m.proceduralTexturingColor = NULL;
-	m.bumpMap = NULL;
+	m.bumpMap = &getNormal;
 	Plane water = Plane(vec3(0.,1, 0),0.05f);
 	Object water_ = Object(&water, m);
 	s.addObject(&water_);

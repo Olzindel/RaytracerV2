@@ -63,6 +63,11 @@ vec3 Raytracer::castRay(Ray *r){
 
     Intersection intersection = Intersection();
     if(scene.intersectScene(r, &intersection)){
+
+        if(intersection.material.bumpMap != NULL){
+			intersection.normal = intersection.material.bumpMap(intersection.position);
+		}
+
         if(intersection.material.isDiffuse){
 
             bool doesMaterialHaveProceduralTexture = false;
