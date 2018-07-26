@@ -3,10 +3,9 @@
 
 using namespace std;
 
-Raytracer::Raytracer(Scene _scene, Image * _image, int _maxRayDepth, int _numberSamplePerPixel) : scene(_scene), image(_image), maxRayDepth(_maxRayDepth), numberSamplePerPixel(_numberSamplePerPixel){
+Raytracer::Raytracer(Scene _scene, Image * _image, int _maxRayDepth, int _numberSamplePerPixel, bool _useIndirectLighting, int _numberRaysIndirectLighting) : scene(_scene), image(_image), maxRayDepth(_maxRayDepth), numberSamplePerPixel(_numberSamplePerPixel),useIndirectLighting(_useIndirectLighting),numberRaysIndirectLighting(_numberRaysIndirectLighting){
 
 }
-
 //=====================================================================================================================================================================================================
 
 Raytracer::~Raytracer(){
@@ -27,7 +26,7 @@ vec3 Raytracer::shade_facingRatio(vec3 lightDir, vec3 intersectionPoint, vec3 no
 
 //=====================================================================================================================================================================================================
 
-vec3 Raytracer::shade_BDSM(vec3 rayDir, vec3 lightDir, vec3 intersectionPoint, vec3 normal, Light *light, Material const& material){
+vec3 Raytracer::shade_BDSM(vec3 rayDir, vec3 lightDir, vec3 intersectionPoint, vec3 normal, Light *light, Material const& material, vec3 materialColor){
      float LdotN = dot(lightDir, normal);
 
     if(LdotN < ZERO_EPS){
@@ -42,13 +41,13 @@ vec3 Raytracer::shade_BDSM(vec3 rayDir, vec3 lightDir, vec3 intersectionPoint, v
 	float VdotH = dot(v, h);
 	float VdotN = dot(v, n);
 
-	return light->Color(intersectionPoint) * RDM_bsdf(LdotH, NdotH, VdotH, LdotN, VdotN, material) * LdotN;
+	return light->Color(intersectionPoint) * RDM_bsdf(LdotH, NdotH, VdotH, LdotN, VdotN, material, materialColor) * LdotN;
 }
 
 //=====================================================================================================================================================================================================
 
-vec3 Raytracer::shade(vec3 rayDir, vec3 lightDir, vec3 intersectionPoint, vec3 normal, Light *light, Material const& material){
-    return shade_BDSM(rayDir, lightDir, intersectionPoint, normal, light, material);
+vec3 Raytracer::shade(vec3 rayDir, vec3 lightDir, vec3 intersectionPoint, vec3 normal, Light *light, Material const& material, vec3 materialColor){
+    return shade_BDSM(rayDir, lightDir, intersectionPoint, normal, light, material, materialColor);
     // return shade_facingRatio(lightDir, intersectionPoint, normal, light, material);
 }
 
@@ -65,6 +64,14 @@ vec3 Raytracer::castRay(Ray *r){
     Intersection intersection = Intersection();
     if(scene.intersectScene(r, &intersection)){
         if(intersection.material.isDiffuse){
+
+            bool doesMaterialHaveProceduralTexture = false;
+            vec3 proceduralTexturingColor = vec3(0.f);
+             if(intersection.material.proceduralTexturingColor != NULL){
+                doesMaterialHaveProceduralTexture = true;
+                proceduralTexturingColor = intersection.material.proceduralTexturingColor(intersection.position, intersection.material.diffuseColor);
+            }
+
             for(Light * light : scene.lights){
                 vec3 intersectionPoint = intersection.position + intersection.normal * ACNE_EPS;
                 vec3 lightDir = normalize(light->position - intersectionPoint);
@@ -73,25 +80,21 @@ vec3 Raytracer::castRay(Ray *r){
 
                 Intersection shadowIntersection = Intersection();
 
-                if(!scene.intersectScene(&shadowRay, &shadowIntersection)){
-                    returnColor += shade(r->dir, lightDir,intersectionPoint, intersection.normal, light, intersection.material);
+                if(!scene.intersectScene(&shadowRay, &shadowIntersection) || shadowIntersection.material.isRefractive){
+                    returnColor += shade(r->dir, lightDir,intersectionPoint, intersection.normal, light, intersection.material, (doesMaterialHaveProceduralTexture) ? proceduralTexturingColor : intersection.material.diffuseColor);
                 }
             }
         }
 
-        float kr = 0.f;
 
-        if(intersection.material.isReflective || intersection.material.isRefractive){
-            kr = fresnel(r, intersection);
-        }
-
-        if(intersection.material.isReflective){
-            returnColor += kr * reflection(r, intersection);
-        }
-
-        if(intersection.material.isRefractive){
-            returnColor += (1 - kr) * refraction(r, intersection);
-        }
+        if(intersection.material.isReflective){ 
+            if(intersection.material.isRefractive){
+                float kr = fresnel(r, intersection);
+                returnColor += kr * reflection(r, intersection) +  (1 - kr) * refraction(r, intersection);
+            } else {
+                returnColor += reflection(r, intersection);
+            }
+        } 
 
 
         return returnColor;
@@ -187,9 +190,9 @@ vec3 Raytracer::RDM_bsdf_s(float LdotH, float NdotH, float VdotH, float LdotN, f
 	return m.specularColor * RDM_Beckmann(NdotH, m.roughness) * RDM_Fresnel(LdotH, skyIOR, m.IOR) * RDM_Smith(LdotH, LdotN, VdotH, VdotN, m.roughness) / (4.f * LdotN * VdotN);
 }
 // diffuse term of the cook torrance bsdf
-vec3 Raytracer::RDM_bsdf_d(Material const& m)
+vec3 Raytracer::RDM_bsdf_d(vec3 materialColor)
 {
-	return m.diffuseColor / (float)M_PI;
+	return materialColor / (float)M_PI;
 }
 
 // The full evaluation of bsdf(wi, wo) * cos (thetai)
@@ -199,9 +202,9 @@ vec3 Raytracer::RDM_bsdf_d(Material const& m)
 // LdotN : Light . Norm
 // VdtoN : View . Norm
 // compute bsdf * cos(Oi)
-vec3 Raytracer::RDM_bsdf(float LdotH, float NdotH, float VdotH, float LdotN, float VdotN, Material const& m)
+vec3 Raytracer::RDM_bsdf(float LdotH, float NdotH, float VdotH, float LdotN, float VdotN, Material const& m, vec3 materialColor)
 {
-	return RDM_bsdf_d(m) + RDM_bsdf_s(LdotH, NdotH, VdotH, LdotN, VdotN, m);
+	return RDM_bsdf_d(materialColor) + RDM_bsdf_s(LdotH, NdotH, VdotH, LdotN, VdotN, m);
 }
 
 //=====================================================================================================================================================================================================

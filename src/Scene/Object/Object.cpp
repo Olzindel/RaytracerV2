@@ -13,6 +13,7 @@ bool Object::intersectObject(Ray *ray, Intersection * intersection){
 
 	if(primitive->intersectPrimitive(ray, intersection)){
 		intersection->material = material;
+
 		return true;
 	}
 
