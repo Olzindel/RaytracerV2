@@ -65,7 +65,7 @@ vec3 Raytracer::castRay(Ray *r){
     if(scene.intersectScene(r, &intersection)){
 
         if(intersection.material.bumpMap != NULL){
-			intersection.normal = intersection.material.bumpMap(intersection.position);
+			intersection.normal = intersection.material.bumpMap(intersection.position, intersection.normal);
 		}
 
         if(intersection.material.isDiffuse){
@@ -74,7 +74,7 @@ vec3 Raytracer::castRay(Ray *r){
             vec3 proceduralTexturingColor = vec3(0.f);
              if(intersection.material.proceduralTexturingColor != NULL){
                 doesMaterialHaveProceduralTexture = true;
-                proceduralTexturingColor = intersection.material.proceduralTexturingColor(intersection.position, intersection.material.diffuseColor);
+                proceduralTexturingColor = intersection.material.proceduralTexturingColor(intersection.position);
             }
 
             for(Light * light : scene.lights){

@@ -18,8 +18,8 @@ class Material{
 		float IOR =1.5f;
 		float roughness = 0.1f;
 
-		vec3 (*proceduralTexturingColor)(vec3, vec3) = NULL;
-		vec3 (*bumpMap)(vec3) = NULL;
+		vec3 (*proceduralTexturingColor)(vec3) = NULL;
+		vec3 (*bumpMap)(vec3, vec3) = NULL;
 };
 
 #endif
